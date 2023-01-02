@@ -58,94 +58,31 @@ Bonus:
 
 import os
 import sys
-import subprocess
 import logging
 from typing import Union, Tuple, List
 from pathlib import Path
 from dataclasses import dataclass, field
-
-BASE_UTILS = ("git-lfs", "zsh", "unzip", "unrar", "tree", "coreutils", "gettext", "ntfs-3g", "xz")
-BASE_APPS = (
-    "z",
-    "tmux",
-    "htop",
-    "neovim",
-    "vim",
-    "pandoc",
-    "pcmanfm",
-    "mousepad",
-    "celluloid",
-    "guake",
-    "imagemagick",
-    "synapse",
-    "vlc",
-    "bat",
-    "jq",
-    "fzf",
-    "ripgrep",
-    "virt-manager",
-    "gimp",
-    "pinta",
-    "clementine",
-    "alacritty",
-    "chromium",
-    "docker",
-    "kubectl",
-    "k9s",
-    "kubens",
-    "glow",
-    "helm",
-    "helix",
+from lib.configuration import (
+    BASE_UTILS,
+    BASE_APPS,
+    AUR_APPS,
+    DOTFILES_REPO,
+    USR_BIN,
+    HOME_DIR,
+    USR_BIN,
+    CLONED_DIR,
+    SCRIPTS_DIR,
 )
-
-AUR_APPS = [
-    ("sakura", 1),
-    ("brave", 1),
-    ("kazam", 1),
-    ("mcomix", 1),
-    ("amber-search-git", 1),
-    ("protonvpn", 2),
-    ("sublime-text-4", 1),
-]
-
-DOTFILES_REPO = "https://github.com/dhoko/dotfiles.git"
-USR_BIN = Path("/usr/local/bin")
-logging.basicConfig(
-    format="%(levelname)s:[%(filename)s] %(message)s",
-    level=os.getenv("LOG_LEVEL", None) or logging.INFO,
-)
+from lib.commands import pacman, yay, shell
 
 
-def merge_directories(src: Union[str, Path], dest: Union[str, Path], verbose: bool = False):
-    """
-    Merge 2 directories together instead of putting dest into src
-    """
-    flags = "" if not verbose else "v"
-    os.system(f"rsync -r{flags} {src} {dest}")
-
-
-def shell(command: List[str]):
-    print("dry-run", command)
-    # subprocess.run(command, shell=True, check=True, stderr=sys.stderr, stdout=sys.stdout)
-
-
-def pacman(packages: Tuple[str]):
-    shell([f"sudo pacman -Syu {' '.join(packages)}"])
-
-
-def yay(package: str, index: int):
-    logging.info("install from AUR %s -> package id: %s", package, index)
-    shell([f"yay -y -a --removemake --answerclean All --answerdiff None {package}"])
-
-
-def get_home_dir() -> Path:
-    output = subprocess.run(["echo $HOME"], shell=True, capture_output=True, text=True, check=True)
-    return Path(output.stdout.strip())
-
-
-HOME_DIR = get_home_dir()
-CLONED_DIR = HOME_DIR.joinpath("dev", "dotfiles")
-SCRIPTS_DIR = CLONED_DIR.joinpath("scripts")
+def install_remote_projects():
+    logging.info("Add oh-my-zsh")
+    shell(
+        [
+            'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"'
+        ]
+    )
 
 
 @dataclass
@@ -181,13 +118,14 @@ class Todo:
 
 
 def load_dotfiles():
-
     if not CLONED_DIR.parent.exists():
         CLONED_DIR.parent.mkdir()
 
-    shell([f"git clone '{DOTFILES_REPO}' --depth 1 {CLONED_DIR}"])
+    shell([f"git clone '{DOTFILES_REPO}' --depth 1 {CLONED_DIR} --silent"])
 
-    TODOS = [
+
+def import_files():
+    for todo in [
         Todo(
             scope="finder",
             entries=[File(sudo=True, name="finder", source_dir=SCRIPTS_DIR, dest_dir=USR_BIN)],
@@ -208,14 +146,12 @@ def load_dotfiles():
                     sudo=True,
                     name="helix",
                     output="hx",
-                    source_diff=Path("/usr/bin"),
+                    source_dir=Path("/usr/bin"),
                     dest_dir=USR_BIN,
                 )
             ],
         ),
-    ]
-
-    for todo in TODOS:
+    ]:
         todo.run()
 
 
@@ -252,13 +188,8 @@ LSP definitions:
     - golang
     - yaml
 
-Todo:
-    - Alias binary helix to hx
 """
     )
-
-    load_dotfiles()
-    return False
 
     # shell(
     # [
@@ -266,20 +197,18 @@ Todo:
     # ],
     # )
 
-    logging.info("install base utilities for the OS")
-    pacman(BASE_UTILS)
+    # logging.info("install base utilities for the OS")
+    # pacman(BASE_UTILS)
 
-    logging.info("install base apps for the OS")
-    pacman(BASE_APPS)
+    # logging.info("install base apps for the OS")
+    # pacman(BASE_APPS)
 
-    for (package, index) in AUR_APPS:
-        yay(package, index)
+    # for (package, index) in AUR_APPS:
+    #     yay(package, index)
 
-    shell(
-        [
-            'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"'
-        ]
-    )
+    # install_remote_projects()
+    # load_dotfiles()
+    import_files()
 
 
 if __name__ == "__main__":
