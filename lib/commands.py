@@ -15,8 +15,8 @@ def merge_directories(src: Union[str, Path], dest: Union[str, Path], verbose: bo
 
 
 def shell(command: List[str]):
-    print("dry-run", command)
-    # subprocess.run(command, shell=True, check=True, stderr=sys.stderr, stdout=sys.stdout)
+    # print("dry-run", command)
+    subprocess.run(command, shell=True, check=True, stderr=sys.stderr, stdout=sys.stdout)
 
 
 def pacman(packages: Tuple[str]):

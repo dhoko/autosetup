@@ -191,23 +191,23 @@ LSP definitions:
 """
     )
 
-    # shell(
-    # [
-    #     "echo Hello, what is your name?' && read name && echo \"Hello: $name\""
-    # ],
-    # )
+    shell(
+    [
+        "echo Hello, what is your name?' && read name && echo \"Hello: $name\""
+    ],
+    )
 
-    # logging.info("install base utilities for the OS")
-    # pacman(BASE_UTILS)
+    logging.info("install base utilities for the OS")
+    pacman(BASE_UTILS)
 
-    # logging.info("install base apps for the OS")
-    # pacman(BASE_APPS)
+    logging.info("install base apps for the OS")
+    pacman(BASE_APPS)
 
-    # for (package, index) in AUR_APPS:
-    #     yay(package, index)
+    for (package, index) in AUR_APPS:
+        yay(package, index)
 
-    # install_remote_projects()
-    # load_dotfiles()
+    install_remote_projects()
+    load_dotfiles()
     import_files()
 
 
