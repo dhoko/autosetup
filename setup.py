@@ -59,6 +59,7 @@ Bonus:
 import os
 import sys
 import logging
+import argparse
 from typing import Union, Tuple, List
 from pathlib import Path
 from dataclasses import dataclass, field
@@ -74,6 +75,11 @@ from lib.configuration import (
     SCRIPTS_DIR,
 )
 from lib.commands import pacman, yay, shell
+
+parser = argparse.ArgumentParser(description="install os")
+parser.add_argument("--bin", action="store_true", help="Install binaries")
+parser.add_argument("--config", action="store_true", help="Install configuration")
+args = parser.parse_args()
 
 
 def install_remote_projects():
@@ -111,6 +117,10 @@ class Todo:
     def run(self):
         logging.info("load configuration for: %s", self.scope)
         for entry in self.entries:
+            output_file = entry.get_dest()
+            if output_file.exists():
+                output_file.rename(Path(output_file.parent, f"{output_file}.back"))
+
             command = f"ln -s {entry.get_src()} {entry.get_dest()}"
             if entry.sudo:
                 command = f"sudo {command}"
@@ -121,7 +131,7 @@ def load_dotfiles():
     if not CLONED_DIR.parent.exists():
         CLONED_DIR.parent.mkdir()
 
-    shell([f"git clone '{DOTFILES_REPO}' --depth 1 {CLONED_DIR} --silent"])
+    shell([f"git clone '{DOTFILES_REPO}' --depth 1 {CLONED_DIR} --quiet"])
 
 
 def import_files():
@@ -156,7 +166,6 @@ def import_files():
 
 
 def main():
-
     print(
         """
 Missing packages:
@@ -191,24 +200,27 @@ LSP definitions:
 """
     )
 
-    shell(
-    [
-        "echo Hello, what is your name?' && read name && echo \"Hello: $name\""
-    ],
-    )
+    # shell(
+    # [
+    #     "echo Hello, what is your name?' && read name && echo \"Hello: $name\""
+    # ],
+    # )
 
-    logging.info("install base utilities for the OS")
-    pacman(BASE_UTILS)
+    if args.bin:
+        logging.info("install base utilities for the OS")
+        pacman(BASE_UTILS)
 
-    logging.info("install base apps for the OS")
-    pacman(BASE_APPS)
+        logging.info("install base apps for the OS")
+        pacman(BASE_APPS)
 
-    for (package, index) in AUR_APPS:
-        yay(package, index)
+        for package, index in AUR_APPS:
+            yay(package, index)
 
-    install_remote_projects()
-    load_dotfiles()
-    import_files()
+        install_remote_projects()
+
+    if args.config:
+        load_dotfiles()
+        import_files()
 
 
 if __name__ == "__main__":
