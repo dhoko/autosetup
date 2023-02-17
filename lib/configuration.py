@@ -45,6 +45,7 @@ AUR_APPS = [
     ("amber-search-git", 1),
     ("protonvpn", 2),
     ("sublime-text-4", 1),
+    ("redshift", 1),
 ]
 
 DOTFILES_REPO = "https://github.com/dhoko/dotfiles.git"

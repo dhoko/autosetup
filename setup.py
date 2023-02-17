@@ -98,6 +98,8 @@ class File:
     source_dir: Path = CLONED_DIR
     dest_dir: Path = HOME_DIR
     sudo: bool = False
+    directory: bool = False
+    dot_config_dir: bool = False
 
     def __post_init__(self):
         self.output = self.output or self.name
@@ -106,6 +108,8 @@ class File:
         return self.source_dir.joinpath(self.name)
 
     def get_dest(self) -> Path:
+        if self.dot_config_dir:
+            return self.dest_dir.joinpath(".config", self.output)
         return self.dest_dir.joinpath(self.output)
 
 
@@ -159,6 +163,14 @@ def import_files():
                     source_dir=Path("/usr/bin"),
                     dest_dir=USR_BIN,
                 )
+            ],
+        ),
+        ## Configuration Directories
+        Todo(
+            scope="config applications",
+            entries=[
+                File(name="helix", dot_config_dir=True),
+                File(name="alacritty", dot_config_dir=True),
             ],
         ),
     ]:
